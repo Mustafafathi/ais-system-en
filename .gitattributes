@@ -1,0 +1,15 @@
+* text=auto eol=lf
+
+*.php text diff=php
+*.js text
+*.css text
+*.md text
+*.sql text eol=crlf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+
+assets/vendor/*.min.js linguist-vendored
+Database/*.sql linguist-language=TSQL

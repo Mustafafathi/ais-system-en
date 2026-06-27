@@ -1,0 +1,39 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+
+# Runtime data
+/runtime/*
+!/runtime/.gitkeep
+!/runtime/**/.gitkeep
+/uploads/*
+!/uploads/.gitkeep
+!/uploads/**/.gitkeep
+
+# Logs, caches, exports, and backups
+*.log
+*.tmp
+*.temp
+*.cache
+*.bak
+*.backup
+*.zip
+*.7z
+*.rar
+*.sql.bak
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+
+# Dependency folders, if introduced later
+vendor/
+node_modules/
