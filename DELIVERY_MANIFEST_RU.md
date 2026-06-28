@@ -1,7 +1,7 @@
 # AIS V2 RU - ведомость поставки
 
-Дата актуализации: 2026-06-16  
-Каталог: C:\xampp\htdocs\ais-system-ru
+Дата актуализации: 2026-06-16
+Каталог: [APP_ROOT]
 
 ## Итог
 
@@ -30,5 +30,5 @@ docs/final-delivery/ru/
 Дополнительно сохранена отдельная копия документации:
 
 ```text
-C:\xampp\htdocs\ais-system-ru-docs
+[DOCS_ROOT]
 ```

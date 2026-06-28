@@ -1,7 +1,7 @@
 # AIS V2 - комплект эксплуатационной и проектной документации
 
-Дата комплектации: 2026-06-16  
-Приложение: C:\xampp\htdocs\ais-system-ru-ru  
+Дата комплектации: 2026-06-16
+Приложение: [APP_ROOT]
 URL приложения: http://localhost/ais-system-ru/
 
 ## Быстрый старт
@@ -23,6 +23,3 @@ URL приложения: http://localhost/ais-system-ru/
 - INTEGRATIONS_RU.md - SKUD, CSV/1C, health endpoint, offline replay.
 - OPERATIONS_RU.md - развёртывание, эксплуатация, обслуживание.
 - TESTING_RU.md - план проверки и критерии приёмки.
-
-
-

@@ -123,7 +123,7 @@ require_once __DIR__ . '/../includes/nav.php';
             var r = await callAPI('СоздатьРезервнуюКопию', {
                 Тип_Копии:     'Полная',
                 Название_Файла: fileName,
-                Путь_Хранения: 'C:\\Backups\\AIS\\' + fileName,
+                Путь_Хранения: '[BACKUP_ROOT]\\\\' + fileName,
                 КтоСоздал:     userId
             });
             if (r && r.success) {
@@ -149,4 +149,3 @@ require_once __DIR__ . '/../includes/nav.php';
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
-

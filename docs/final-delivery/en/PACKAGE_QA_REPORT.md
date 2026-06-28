@@ -18,4 +18,4 @@ The application source contains hardcoded public paths from the original deploym
 
 ## Release Readiness
 
-Ready for initial GitHub publication after the project owner selects a repository name, reviews secrets, and adds the desired license terms.
+Ready for initial GitHub publication after I select a repository name, review secrets, and add the desired license terms.

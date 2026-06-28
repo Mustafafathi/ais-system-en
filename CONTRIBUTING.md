@@ -13,7 +13,7 @@
 Before opening a pull request, run PHP syntax checks across the project:
 
 ```powershell
-Get-ChildItem -Recurse -Filter *.php | ForEach-Object { C:\xampp\php\php.exe -l $_.FullName }
+Get-ChildItem -Recurse -Filter *.php | ForEach-Object { ${PHP_BINARY:-php} -l $_.FullName }
 ```
 
 For documentation-only changes, verify links, paths, and deployment instructions.

@@ -5,7 +5,7 @@
 Run from the repository root on Windows with XAMPP PHP:
 
 ```powershell
-Get-ChildItem -Recurse -Filter *.php | ForEach-Object { C:\xampp\php\php.exe -l $_.FullName }
+Get-ChildItem -Recurse -Filter *.php | ForEach-Object { ${PHP_BINARY:-php} -l $_.FullName }
 ```
 
 ## Manual Smoke Tests

@@ -2,8 +2,8 @@
 
 ## Пути поставки
 
-- Приложение: C:\xampp\htdocs\ais-system-ru
-- Документация: C:\xampp\htdocs\ais-system-ru-docs
+- Приложение: [APP_ROOT]
+- Документация: [DOCS_ROOT]
 - URL приложения: http://localhost/ais-system-ru/
 
 ## Перед запуском

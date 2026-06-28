@@ -17,7 +17,7 @@
 Содержимое `V2` рекомендуется разворачивать как активный web-root проекта:
 
 ```text
-C:\xampp\htdocs\ais-system-ru
+[APP_ROOT]
 ```
 
 Причина: в клиентском коде используются абсолютные пути `/ais-system-ru/...`.
@@ -168,6 +168,3 @@ C:\xampp\htdocs\ais-system-ru
 4. Проверить session/token.
 5. Проверить `runtime/idempotency`.
 6. Проверить результат `api.php`.
-
-
-

@@ -6,6 +6,10 @@ The product combines QR-based classroom attendance, role-based workspaces, absen
 
 This public repository is an anonymized distribution. Institutional names, personal data, internal paths, secrets, and production identifiers have been removed.
 
+## Ownership
+
+I own the system architecture, product direction, database contract, integration model, and repository maintenance. I package this public repository as an anonymized product distribution and retain design authority over the system.
+
 ## Product Scope
 
 AIS covers the daily attendance lifecycle from schedule to reporting:
@@ -156,4 +160,4 @@ Start with [SECURITY.md](SECURITY.md). The public baseline includes:
 
 ## License
 
-No open-source license grant is included by default. Add the license selected by the project owner before distributing the repository publicly.
+No open-source license grant is included by default. I will add the selected license before distributing the repository publicly.

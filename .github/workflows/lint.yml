@@ -31,7 +31,7 @@ jobs:
 
       - name: Block known local secrets and institution names
         run: |
-          ! grep -RInE "Dev_656|СТИ НИТУ|Старооскольский технологический институт|C:\\\\Program Files" \
+          ! grep -RInE "[A-Z]:\\\\|Dev_[0-9]+" \
             --exclude-dir=.git \
             --exclude='*.docx' \
             --exclude='*.xlsx' \

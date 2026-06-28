@@ -1,12 +1,12 @@
 # Development Governance and AI Use
 
-AIS Attendance Platform was developed with a governed human-led process. AI assistance was used for execution speed, not for architectural ownership.
+AIS Attendance Platform was developed under my engineering governance. I used AI assistance for execution speed, not for product ownership or architecture decisions.
 
-## Human-Owned Decisions
+## My Engineering Decisions
 
-The system design, database contract, integration model, security posture, and economic assumptions were defined and reviewed by the project owner.
+I own the system design, database contract, integration model, security posture, and economic assumptions.
 
-Human-owned work included:
+My direct responsibilities include:
 
 - domain analysis for university attendance workflows;
 - thick database architecture;
@@ -30,6 +30,6 @@ AI was used as an implementation accelerator for repetitive and specification-dr
 
 ## Governance Boundary
 
-AI-generated output was treated as implementation material requiring review. It did not define product requirements, database rules, security controls, or economic assumptions.
+AI-generated output is implementation material, not design authority. I review it against the database contract, security model, integration rules, and product requirements before accepting it.
 
-The repository therefore presents AI use as a controlled engineering tool: useful for throughput, but subordinate to human system design and acceptance criteria.
+The repository presents AI use as a controlled engineering tool: useful for throughput, but subordinate to my review, acceptance criteria, and design authority.
