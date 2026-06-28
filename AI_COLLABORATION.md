@@ -1,38 +1,35 @@
-# AI Collaboration Strategy
+# Development Governance and AI Use
 
-This project used a "Human Architect, AI Executor" model.
+AIS Attendance Platform was developed with a governed human-led process. AI assistance was used for execution speed, not for architectural ownership.
 
-## My Role
+## Human-Owned Decisions
 
-The human-owned work was the architectural and analytical core:
+The system design, database contract, integration model, security posture, and economic assumptions were defined and reviewed by the project owner.
 
-- domain analysis of the university attendance workflow;
+Human-owned work included:
+
+- domain analysis for university attendance workflows;
 - thick database architecture;
 - SQL Server schema, stored procedure, trigger, and index strategy;
-- QR attendance transaction design;
-- SKUD webhook integration model;
-- CSV exchange model for ERP/1C;
-- security layers and audit requirements;
-- economic model and feasibility narrative;
-- review and correction of generated implementation code.
+- QR attendance transaction model;
+- SKUD webhook security model;
+- ERP/1C CSV exchange model;
+- RBAC and audit boundaries;
+- economic value model;
+- final review and correction of implementation output.
 
-The original database scripts under `Database/*.sql` contain 42 unique SQL tables, 125 unique stored procedures, 17 unique triggers, and 98 unique `CREATE INDEX` definitions. The clean `Database/schema/` folder is a publication-safe skeleton and is not included in those counts.
+## AI-Assisted Work
 
-## AI's Role
+AI was used as an implementation accelerator for repetitive and specification-driven tasks:
 
-AI was used as an implementation assistant for repetitive and mechanical work:
+- generating PHP/HTML UI scaffolding from predefined workflows;
+- drafting repeated validation and layout patterns;
+- generating synthetic mock-data patterns;
+- normalizing documentation language;
+- assisting with refactoring suggestions.
 
-- scaffolding responsive PHP/HTML pages from already-defined workflows;
-- drafting UI blocks and validation patterns;
-- helping normalize documentation wording;
-- generating synthetic test-data patterns where real personal data must not be used;
-- refactoring repetitive client-side and PHP helper code.
+## Governance Boundary
 
-The current role-based UI contains 45 PHP workspace pages across administrator, student, teacher, curator, and methodist areas.
+AI-generated output was treated as implementation material requiring review. It did not define product requirements, database rules, security controls, or economic assumptions.
 
-## Boundary
-
-AI did not decide the architecture. It did not define the database contract, the economic model, the integration security model, or the compliance requirements.
-
-Using AI here is comparable to delegating implementation tasks to a junior developer after the architecture, constraints, and acceptance criteria are already defined. The engineering value is in the decisions, review, and system fit, not in pretending every line was typed manually.
-
+The repository therefore presents AI use as a controlled engineering tool: useful for throughput, but subordinate to human system design and acceptance criteria.

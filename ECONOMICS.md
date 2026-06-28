@@ -1,20 +1,28 @@
-# Economic Feasibility
+# Business Value Model
 
-This file translates the economic workbook into an auditable engineering narrative. The figures below were extracted from `ЭФФЕКТИВНОСТЬ ПРОЕКТА.xlsx`, sheet `Раздел 4`.
+AIS Attendance Platform reduces repetitive attendance administration and converts fragmented paper records into auditable operational data.
 
-The key principle is that the system does not justify itself by firing staff. It reallocates expensive human time from repetitive attendance administration to educational and managerial work.
+The reference model is based on recovered staff time. It does not assume staff reduction. The financial value comes from reallocating administrative hours to educational, analytical, and student-support work.
 
-## Baseline Logic
+## Reference Assumptions
 
-The workbook models recovered time from two sources:
+| Metric | Value |
+| --- | ---: |
+| Curator time recovered | 400 hours/year |
+| Dean's office time recovered | 144 hours/year |
+| Total recovered time | 544 hours/year |
+| Administrative hour value | 500 RUB/hour |
+| Annual recovered time value | 272,000 RUB |
+| Annual OPEX | 52,000 RUB |
+| Reference CAPEX | 0 RUB |
+
+## Time Recovery
 
 | Source | Calculation | Annual Hours |
 | --- | ---: | ---: |
-| Curator time | `2 x 200` | 400 |
-| Dean's office staff time | `16 x 9` | 144 |
-| Total recovered time | `400 + 144` | 544 |
-
-The workbook uses a value of 500 RUB per administrative hour.
+| Curator workflow | `2 x 200` | 400 |
+| Dean's office workflow | `16 x 9` | 144 |
+| Total | `400 + 144` | 544 |
 
 ```text
 544 hours x 500 RUB/hour = 272,000 RUB/year
@@ -28,18 +36,13 @@ The workbook uses a value of 500 RUB per administrative hour.
 | Documentation updates | 4,000 RUB |
 | Total OPEX | 52,000 RUB |
 
-## Net Annual Cash Flow
-
 ```text
-Recovered time value - OPEX = net annual cash flow
-272,000 - 52,000 = 220,000 RUB/year
+272,000 RUB - 52,000 RUB = 220,000 RUB/year
 ```
 
-The workbook records CAPEX / one-time implementation cost as 0 RUB because the project was completed as academic graduation work using existing infrastructure.
+## Five-Year Discounted Value
 
-## Discounted Cash Flow
-
-The workbook applies a 10% discount rate across five years.
+The reference model uses a 10% discount rate.
 
 | Year | Net CF | Discount Factor | Discounted CF | Cumulative NPV |
 | ---: | ---: | ---: | ---: | ---: |
@@ -49,20 +52,22 @@ The workbook applies a 10% discount rate across five years.
 | 4 | 220,000 | 0.6830 | 150,260 | 697,356 |
 | 5 | 220,000 | 0.6209 | 136,598 | 833,954 |
 
-## Financial Outcome
+## Outcome
 
-| Indicator | Workbook Value |
+| Indicator | Value |
 | --- | ---: |
-| Annual recovered time | 544 hours |
-| Annual recovered time value | 272,000 RUB |
-| Annual OPEX | 52,000 RUB |
 | Annual net cash flow | 220,000 RUB |
-| CAPEX | 0 RUB |
-| 5-year NPV | 833,954 RUB |
+| Five-year NPV | 833,954 RUB |
 | Discounted payback | Less than 1 year |
 
-## ROI Note
+## Product Interpretation
 
-The current workbook does not contain a visible ROI cell or formula. Earlier project notes mentioned 423%, but I do not report that as an audited repository figure unless the source workbook is extended with an explicit ROI calculation cell.
+The platform pays back by reducing repeated manual reconciliation:
 
-That is deliberate: portfolio documentation should be defensible. NPV, net cash flow, CAPEX, OPEX, and recovered hours are present in the workbook; ROI is not.
+- one attendance source of truth;
+- faster group-level risk detection;
+- fewer disputes between teacher and student-leader records;
+- less manual preparation for dean's office reporting;
+- reusable integration data from ERP/1C and SKUD systems.
+
+Financial results should be recalculated for each institution using its own lecture volume, staff cost, discount rate, and support model.

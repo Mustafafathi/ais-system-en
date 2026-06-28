@@ -1,77 +1,125 @@
-# AIS Attendance System
+# AIS Attendance Platform
 
-AIS Attendance System is a PHP and SQL Server web application for managing student attendance, schedule visibility, QR-based attendance capture, absence justifications, notifications, reports, and administrative operations.
+AIS Attendance Platform is an on-premise university attendance management system for institutions that need reliable attendance capture, controlled integrations, and auditable governance without introducing a cloud dependency.
 
-This repository is prepared as an English, GitHub-ready package. The runtime application source remains in its original Russian-language domain model because stored procedure names, database columns, roles, and API action names are part of the working SQL Server contract.
+The product combines QR-based classroom attendance, role-based workspaces, absence justification workflows, reporting, ERP/1C CSV exchange, and signed access-control-system webhooks. It is designed for environments where Microsoft SQL Server, Windows Server, and strict personal-data handling are operational realities.
 
-## Project Status
+This public repository is an anonymized distribution. Institutional names, personal data, internal paths, secrets, and production identifiers have been removed.
 
-- Runtime UI and database contract: kept unchanged.
-- Repository documentation: English.
-- Original Russian delivery documentation: preserved under `docs/final-delivery/ru/`.
-- English delivery documentation: available under `docs/final-delivery/en/`.
+## Product Scope
+
+AIS covers the daily attendance lifecycle from schedule to reporting:
+
+- teachers open lessons, generate QR sessions, and mark attendance;
+- students scan QR codes, view attendance, and submit absence justifications;
+- curators monitor group risk and repeated absences;
+- methodists maintain groups, subjects, teachers, and schedule data;
+- administrators manage users, roles, imports, exports, monitoring, and maintenance;
+- integration endpoints accept signed SKUD events and CSV data exchange with ERP/1C.
 
 ## Core Capabilities
 
-- Role-based workspaces for administrator, methodist, teacher, curator, and student users.
-- QR attendance sessions and student QR scanning.
-- Schedule views for students, teachers, curators, methodists, and administrators.
-- Attendance journals, reports, absence justification workflows, and notifications.
-- CSV and access-control-system integration endpoints.
-- Offline request queue support for unstable network conditions.
-- SQL Server stored procedure gateway with session validation and idempotency support.
+| Area | Capability |
+| --- | --- |
+| Attendance capture | QR sessions, manual marks, duplicate prevention, session validation |
+| Absence workflow | Student excuse submission, review states, automatic attendance update on approval |
+| Role workspaces | Administrator, methodist, teacher, curator, and student interfaces |
+| Reporting | Group, student, teacher, schedule, attendance, and administrative reports |
+| Integration | ERP/1C CSV import/export and SKUD webhook ingestion |
+| Security | Session validation, dynamic RBAC, HMAC-SHA256 webhooks, nonce replay protection |
+| Audit | Database-side logging for operational and security-sensitive actions |
+| Operations | Health checks, maintenance actions, index servicing, backup metadata, runtime folders |
+
+## Architecture Snapshot
+
+The platform uses a thick database architecture. Business rules live in SQL Server stored procedures and triggers, while PHP provides transport, session handling, request normalization, and UI delivery.
+
+The original database scripts under `Database/*.sql` contain:
+
+| Object Type | Count |
+| --- | ---: |
+| Unique tables | 42 |
+| Unique stored procedures | 125 |
+| Unique triggers | 17 |
+| Unique `CREATE INDEX` definitions | 98 |
+
+The public `Database/schema/` folder provides a clean, anonymized skeleton for review and onboarding. The larger database export is preserved as implementation reference after removing exported personal-data rows.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the system design.
+
+## Business Value
+
+The reference economic model values recovered administrative time rather than staff reduction.
+
+| Indicator | Value |
+| --- | ---: |
+| Annual recovered time | 544 hours |
+| Annual recovered time value | 272,000 RUB |
+| Annual OPEX | 52,000 RUB |
+| Annual net cash flow | 220,000 RUB |
+| Reference CAPEX | 0 RUB |
+| 5-year NPV | 833,954 RUB |
+
+See [ECONOMICS.md](ECONOMICS.md) for the calculation model.
 
 ## Technology Stack
 
-- PHP 8.x on Apache/XAMPP.
-- Microsoft SQL Server with the `sqlsrv` PHP extension.
-- Plain JavaScript, HTML, and CSS.
-- Local QR libraries in `assets/vendor/`.
-- File-based runtime folders for sessions, temporary files, and idempotency cache.
+- PHP 8.2 and Apache
+- Microsoft SQL Server 2022
+- `sqlsrv` / `pdo_sqlsrv`
+- HTML5, CSS3, vanilla JavaScript
+- CSV exchange for ERP/1C
+- HMAC-SHA256 webhooks for SKUD/access-control events
+- Docker Compose for disposable local evaluation
 
 ## Repository Layout
 
 ```text
 admin/                  Administrator workspace
-assets/                 CSS, JavaScript, images, and local vendor assets
+assets/                 CSS, JavaScript, images, and client assets
 curator/                Curator workspace
-Database/               SQL Server schema, procedures, triggers, and migrations
-docs/final-delivery/en/ English delivery documentation
-docs/final-delivery/ru/ Original Russian delivery documentation
+Database/               SQL Server implementation scripts and clean schema skeleton
+docs/                   Delivery and technical documentation
 includes/               Shared layout, auth, navigation, and role helpers
-integration/            CSV, ACS/SKUD, health, and procedure gateway helpers
-login/                  Login, logout, and PHP session bridge
+integration/            CSV, SKUD, health, and procedure-gateway helpers
+login/                  Login, logout, and session bridge
 methodist/              Methodist workspace
-runtime/                Local runtime storage, ignored by Git except placeholders
+runtime/                Runtime storage, ignored except .gitkeep placeholders
 student/                Student workspace
 teacher/                Teacher workspace
-uploads/                User uploads, ignored by Git except placeholders
+uploads/                User uploads, ignored except .gitkeep placeholders
 ```
 
-## Quick Start
+## Run Locally with Docker
 
-1. Install and start Apache through XAMPP.
-2. Install SQL Server and make it reachable at `localhost,15432`, or override the host and port through environment variables.
-3. Enable the PHP `sqlsrv` extension.
-4. Import or apply the SQL scripts from `Database/` in the expected order for your environment.
-5. Configure environment variables based on `.env.example`.
-6. Open the application at the configured `AIS_SITE_URL`.
+1. Copy `.env.example` to `.env`.
+2. Replace all `CHANGE_ME_*` values.
+3. Start the stack:
 
-Default local URL used by the original package:
-
-```text
-http://localhost/ais-system-ru/
+```powershell
+docker compose up -d
 ```
 
-If you deploy the application under another folder, review the hardcoded public paths before using it in production.
+The Docker image builds PHP with SQL Server drivers. The application is served on `http://localhost:8080/`.
+
+## Run on Existing Windows/XAMPP Infrastructure
+
+1. Install Apache/PHP and enable the `sqlsrv` extension.
+2. Install or connect to Microsoft SQL Server.
+3. Copy `config.example.php` to ignored local `config.php`.
+4. Configure database and integration secrets through environment variables.
+5. Apply the database scripts required by your environment.
+6. Open the configured `AIS_SITE_URL`.
 
 ## Configuration
 
-The application reads these environment variables when available:
+The application reads these environment variables:
 
 ```text
 AIS_SITE_URL
 AIS_DEBUG
+AIS_TIMEZONE
+AIS_SESSION_LIFETIME_MINUTES
 AIS_DB_HOST
 AIS_DB_PORT
 AIS_DB_NAME
@@ -84,47 +132,27 @@ AIS_HEALTH_SECRET
 AIS_INTEGRATION_ALLOWLIST
 ```
 
-Use `.env.example` as a checklist. Copy `config.example.php` to `config.php` for local non-Docker development. Do not commit real credentials, GitHub tokens, database passwords, signing secrets, or production allowlists.
+`config.php`, `.env`, logs, uploads, runtime data, Word documents, Excel workbooks, and local exports are intentionally ignored.
 
+## Security
 
-## Engineering Deep Dives
+Start with [SECURITY.md](SECURITY.md). The public baseline includes:
 
-- `ARCHITECTURE.md` explains the thick database trade-off, gateway design, indexing strategy, partitioning status, and integration resilience.
-- `ECONOMICS.md` translates the economic workbook into auditable NPV and cash-flow figures.
-- `AI_COLLABORATION.md` documents how AI was used as an implementation assistant while architecture and review remained human-owned.
+- no committed live configuration;
+- no real university data;
+- anonymized branding;
+- signed SKUD webhooks;
+- nonce replay protection;
+- database-side audit and authorization boundaries;
+- CI checks for PHP syntax and known sensitive patterns.
 
-## Docker Compose
-
-For a disposable local environment, copy `.env.example` to `.env`, replace `CHANGE_ME_*` values, then run:
-
-```powershell
-docker compose up -d
-```
-
-The current Compose file reflects the existing repository layout where the PHP application lives at the repository root. The container mounts `config.example.php` as `config.php`; for non-Docker local development, create your own ignored `config.php` copy.
 ## Documentation
 
-Start here:
-
-- `docs/final-delivery/en/START_HERE.md`
-- `docs/final-delivery/en/SYSTEM_OVERVIEW.md`
-- `docs/final-delivery/en/ARCHITECTURE.md`
-- `docs/final-delivery/en/OPERATIONS.md`
-- `docs/final-delivery/en/SECURITY.md`
-
-## Security Notice
-
-Never paste personal access tokens into chat, issues, commits, documentation, or source code. If a token was exposed, revoke it in GitHub immediately and create a new one with the minimum required scopes.
-
-## GitHub Publishing
-
-```powershell
-cd [INSTALL_PATH]/ais-university-attendance-system
-git remote add origin https://github.com/<your-user>/<your-repo>.git
-git push -u origin main
-```
-
-Use a fresh token only when Git prompts for credentials. Do not store the token in repository files.
+- [ARCHITECTURE.md](ARCHITECTURE.md) - system architecture and design trade-offs
+- [ECONOMICS.md](ECONOMICS.md) - business value model
+- [SECURITY.md](SECURITY.md) - security controls and publication checklist
+- [AI_COLLABORATION.md](AI_COLLABORATION.md) - development governance and AI-use disclosure
+- [docs/final-delivery/en/START_HERE.md](docs/final-delivery/en/START_HERE.md) - delivery documentation index
 
 ## License
 

@@ -1,6 +1,8 @@
 # Security Model
 
-This repository is an anonymized portfolio version of a university attendance management system. It must not contain real credentials, personal data, institutional identifiers, internal IP addresses, or local installation paths.
+AIS Attendance Platform is designed for controlled university environments where attendance data, user accounts, integration events, and audit records must be handled as sensitive institutional information.
+
+The public distribution is anonymized and must remain free of real credentials, personal data, institutional identifiers, internal IP addresses, and local installation paths.
 
 ## 1. Secret Handling
 
@@ -17,28 +19,38 @@ Use `config.example.php` and `.env.example` as templates. Local development must
 
 ## 2. Authentication
 
-The SQL source stores password material as SHA-256 hashes with per-user salts. The source contains repeated use of `HASHBYTES('SHA2_256', password + salt)` and `CRYPT_GEN_RANDOM` for salt generation.
+The reference SQL implementation stores password material as SHA-256 hashes with per-user salts. The SQL layer uses `HASHBYTES('SHA2_256', password + salt)` and `CRYPT_GEN_RANDOM` for salt generation.
 
-Important source-derived limitation: the current `Авторизация` procedure logs failed login attempts, but the source does not implement account lockout after 5 failed login attempts in the normal login flow. The `>= 5` attempt limit exists in the password recovery token confirmation flow. This repository documents the current code honestly rather than overstating the control.
+Password recovery tokens include attempt limiting; the confirmation flow rejects recovery attempts after the configured threshold is reached.
 
-For a new production build, PHP `password_hash()` with Argon2id or bcrypt should replace raw SHA-256 password hashing.
+Recommended production hardening:
+
+- replace raw SHA-256 password hashing with Argon2id or bcrypt through PHP `password_hash()`;
+- apply login lockout or adaptive throttling for repeated failed password attempts;
+- rotate recovery-token and webhook secrets on an institutional schedule.
 
 ## 3. Authorization
 
-The system uses role-based access control through database roles, permissions, and stored procedures. The UI hides unauthorized navigation items, but the stronger control is procedure-level validation inside SQL Server.
+Authorization is role-based and database-backed. The UI hides unavailable actions, but stored procedures remain the authoritative enforcement layer.
 
-This matters because UI-only authorization can be bypassed by direct API calls. Database-side checks keep the rule close to the data mutation.
+This double-check model protects the product when a user bypasses the interface and calls the API directly:
+
+- UI navigation is generated from role capabilities;
+- API calls require session validation except for the public allowlist;
+- stored procedures validate permissions before sensitive mutations.
 
 ## 4. Dynamic Procedure Gateway
 
-The PHP API validates an action name, checks `INFORMATION_SCHEMA.ROUTINES`, reads `INFORMATION_SCHEMA.PARAMETERS`, and binds JSON request data to stored procedure parameters. Non-public procedures require a valid session token.
+The PHP API validates action names, checks `INFORMATION_SCHEMA.ROUTINES`, reads `INFORMATION_SCHEMA.PARAMETERS`, and binds JSON request data to stored procedure parameters.
 
-The current public procedure list is limited to:
+The public procedure allowlist is intentionally small:
 
 - `Авторизация`
 - `ВосстановитьПароль`
 - `ПодтвердитьВосстановлениеПароля`
 - `ПроверитьСессию`
+
+All other procedure calls require a valid session token.
 
 ## 5. SKUD Webhook Security
 
@@ -51,11 +63,11 @@ The access-control-system integration verifies:
 - HMAC-SHA256 over timestamp, nonce, and raw body;
 - nonce replay cache.
 
-The current implementation rejects timestamps outside a 60-second window and uses a 300-second default nonce TTL.
+The webhook validator rejects stale timestamps outside a 60-second window and uses a 300-second default nonce TTL. Duplicate nonce events are accepted as already handled and are not inserted twice.
 
 ## 6. Audit and Logging
 
-The current SQL source contains 17 unique triggers. The audit/log table records fields for:
+The database layer includes 17 unique triggers in the implementation scripts. Audit and log records capture:
 
 - user id;
 - action;
@@ -78,10 +90,10 @@ This is not production IDS tooling and does not replace firewall rules, SIEM, en
 
 ## 8. Publication Checklist
 
-Before publishing:
+Before publishing a distribution:
 
 - run the secret scan workflow;
 - confirm `config.php` is absent from Git;
 - keep `runtime/` and `uploads/` empty except `.gitkeep` files;
-- remove or anonymize any SQL export that contains real `INSERT` data;
+- remove or anonymize SQL exports that contain real `INSERT` data;
 - replace institution-specific names with `[University Name Redacted]`.

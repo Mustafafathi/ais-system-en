@@ -1,109 +1,120 @@
-# Architecture Deep Dive: Thick Database Under Real Constraints
+# System Architecture
 
-This repository documents an anonymized university attendance management system built for a constrained, legacy-friendly environment: PHP, Microsoft SQL Server, Windows Server, CSV exchange with ERP/1C, and signed webhooks from an access control system.
+AIS Attendance Platform is designed as an on-premise university attendance product for environments where SQL Server, Windows-friendly deployment, controlled integrations, and auditability are more important than cloud-native complexity.
 
-The original database scripts under `Database/*.sql` contain 42 unique SQL tables, 125 unique stored procedures, 17 unique triggers, and 98 unique `CREATE INDEX` definitions. The clean `Database/schema/` folder is a publication-safe skeleton and is not included in those counts. The main SQL Server export alone contains 34 tables, 90 stored procedures, 17 triggers, and 92 indexes.
+The architecture is intentionally conservative: SQL Server owns the business rules, PHP owns transport and presentation, and external systems interact through narrow integration contracts.
 
-## 1. The Core Trade-off
+## Architectural Drivers
 
-Most modern web applications put most business logic in an application service layer and use an ORM to persist state. I rejected that as the primary architecture here because the system had to fit a university environment with strict database access controls, limited deployment flexibility, and high reporting load.
+| Driver | Design Response |
+| --- | --- |
+| Strict handling of personal data | Keep mutation rules and audit close to the database |
+| Legacy Windows/SQL Server environment | Use PHP, Apache, SQL Server, and `sqlsrv` drivers |
+| Existing ERP/1C and SKUD systems | Integrate through CSV exchange and signed webhooks |
+| Heavy administrative reporting | Push aggregation and filtering into SQL Server |
+| Low operational budget | Avoid paid frameworks, cloud services, and new hardware requirements |
 
-The database is the enforcement boundary:
+## Database-Centered Domain Model
 
-- Stored procedures validate actions before data changes.
-- Triggers enforce audit and consistency rules close to the data.
-- PHP acts as transport, session validation, request normalization, and UI delivery.
-- Reporting queries stay inside SQL Server, reducing network round-trips and avoiding repeated aggregation in PHP.
+The product uses a thick database architecture. Stored procedures are the primary business API; triggers enforce consistency and audit rules; PHP routes requests into this contract.
 
-This does not mean "put everything in SQL" blindly. It means the rules that must remain true even when the web layer changes are placed in the database contract.
+The original database scripts under `Database/*.sql` contain:
 
-## 2. Query and Index Strategy
+| Object Type | Count |
+| --- | ---: |
+| Unique tables | 42 |
+| Unique stored procedures | 125 |
+| Unique triggers | 17 |
+| Unique `CREATE INDEX` definitions | 98 |
 
-The project is an attendance system operationally, but it becomes a reporting system very quickly. Curators, teachers, and administrators need fast answers for:
+The clean publication schema in `Database/schema/` is a safe review skeleton. It contains the core domain shape without personal data or production-specific identifiers.
 
-- students with repeated absences over a recent period;
-- group attendance summaries;
-- teacher workload and lesson status;
-- QR scan history;
-- SKUD event reconciliation;
-- unresolved absence justifications;
-- administrative audit review.
+## Request Flow
 
-The original SQL source contains 98 unique `CREATE INDEX` definitions across the publication-audited database scripts. These indexes are not decorative. They target repeated reporting and lookup paths used by the PHP pages and stored procedures.
+```mermaid
+flowchart LR
+    UI[Role Workspace UI] --> API[PHP Dynamic API Gateway]
+    API --> Meta[INFORMATION_SCHEMA Metadata]
+    API --> SP[SQL Server Stored Procedures]
+    SP --> Tables[Domain Tables]
+    SP --> Audit[Audit Log]
+    Triggers[SQL Triggers] --> Audit
+    CSV[ERP/1C CSV] --> API
+    SKUD[SKUD Webhook] --> API
+```
 
-Key patterns:
+## Dynamic API Gateway
 
-- Composite indexes for group/date/status filters.
-- Covering indexes for dashboard and report views.
-- Filtered indexes for active workflow states, such as pending password recovery or unread notifications.
-- Unique constraints for integrity, such as preventing duplicate QR scans and duplicate attendance records.
-- Full-text support is enabled through `ftCatalog`, avoiding the worst cases of `LIKE '%term%'` for search-oriented features.
+The PHP gateway accepts an `action` and parameters. It validates the action name, checks `INFORMATION_SCHEMA.ROUTINES`, reads parameter metadata from `INFORMATION_SCHEMA.PARAMETERS`, builds SQL Server bindings, and executes the procedure with `sqlsrv_prepare`.
 
-The source also includes an index maintenance stored procedure using `sys.dm_db_index_physical_stats`, with different behavior for reorganizing or rebuilding indexes based on fragmentation.
+This creates a stable product extension model:
 
-## 3. Partitioning and Audit Retention
+- add a stored procedure to add a backend capability;
+- keep transport code stable;
+- use SQL metadata instead of duplicated PHP endpoint definitions;
+- enforce authorization again inside stored procedures.
 
-The source defines:
+The UI references 67 unique API actions, all backed by SQL procedure definitions.
 
-- `pf_LogDate` as a SQL Server partition function;
-- `ps_LogDate` as a partition scheme.
+## Indexing Strategy
 
-This shows the intended strategy for date-based log management. Audit and operational logs can grow quickly in an attendance system because every login, import, QR scan, attendance change, and integration event may produce a record.
+The platform is operational during class time and analytical after class time. Curators and administrators need fast reports for repeated absences, group risk, unresolved excuses, teacher workload, schedule coverage, and audit review.
 
-Important limitation from the current source audit: the partition function and scheme are present, but the existing technical review notes that no attached partitioned table/index was found. In a production hardening pass, the next step is to bind the audit/log table to the partition scheme and define retention jobs.
+The index strategy uses:
 
-## 4. Dynamic API Gateway
+- composite indexes for group/date/status access paths;
+- covering indexes for report grids and dashboards;
+- filtered indexes for active workflow queues;
+- uniqueness constraints for duplicate prevention;
+- full-text support through `ftCatalog` for search-oriented behavior;
+- maintenance procedures based on `sys.dm_db_index_physical_stats`.
 
-The gateway is the maintenance-saving part of the PHP layer.
+The purpose is predictable reporting latency, not maximizing object counts.
 
-Instead of writing a new PHP endpoint for every new feature, `api.php` validates an `action`, checks that a stored procedure exists in `INFORMATION_SCHEMA.ROUTINES`, reads parameter metadata from `INFORMATION_SCHEMA.PARAMETERS`, builds SQL Server bindings, and executes the procedure through `sqlsrv_prepare`.
+## Audit and Retention
 
-The result:
+Audit logs capture operational and security-sensitive actions. The SQL source defines a partition function `pf_LogDate` and partition scheme `ps_LogDate`, which establishes the retention direction for date-based log management.
 
-- adding a feature usually means adding or changing a stored procedure;
-- PHP does not need a new controller for every operation;
-- procedure parameter metadata drives request binding;
-- unauthorized actions still fail in the database layer when stored procedures check permissions.
+A production deployment should bind the final audit/log table and indexes to the partition scheme and schedule retention operations according to institutional policy.
 
-The current UI references 67 unique API actions, and every referenced action has a matching SQL procedure definition in the database scripts.
+## SKUD Integration
 
-## 5. Integration Resilience
-
-### SKUD / Access Control
-
-The SKUD endpoint is implemented as a signed webhook flow:
+SKUD events are accepted through a signed webhook:
 
 - source IP allowlist;
 - `X-SKUD-Signature`;
 - `X-SKUD-Timestamp`;
 - `X-SKUD-Nonce`;
-- `HMAC-SHA256` over timestamp, nonce, and the exact raw body;
-- nonce cache to prevent replay.
+- `HMAC-SHA256` over timestamp, nonce, and raw body;
+- nonce cache with replay detection.
 
-The current implementation rejects stale timestamps outside a 60-second window and stores nonce hashes with a default 300-second TTL. Duplicate nonce events are treated as already handled rather than inserted twice.
+A SKUD event is treated as building-access evidence, not automatic classroom attendance. Attendance remains tied to lessons and QR/manual marking policy.
 
-An important business rule remains: a building entry event is not the same as classroom attendance. SKUD data is supplementary context for reconciliation, not an automatic "present" mark.
+## ERP/1C Integration
 
-### ERP / 1C CSV Exchange
+ERP/1C exchange is file-based by design. CSV import/export limits coupling and avoids granting direct database access to external systems.
 
-ERP integration is intentionally conservative. The source supports CSV import/export actions through the same procedure gateway:
+Confirmed behavior includes:
 
+- UTF-8 BOM stripping;
+- normalized line endings;
+- semicolon-based parsing for import procedures;
 - group import;
 - student import;
-- attendance export.
+- attendance export;
+- import and integration audit logging.
 
-CSV normalization removes UTF-8 BOM, normalizes line endings, and uses semicolon-separated parsing for the import procedures. The current code also has delimiter detection support for headers. I did not find Windows-1251 conversion in the source, so this repository documents UTF-8 as the confirmed implementation and treats Windows-1251 as a possible future compatibility extension.
+Windows-1251 conversion is a compatibility extension point, not part of the confirmed implementation.
 
-## 6. Operational Shape
+## Runtime Model
 
-The runtime is intentionally simple:
+The runtime is designed for institutional infrastructure:
 
-- PHP 8.x;
-- SQL Server with `sqlsrv`;
-- vanilla JavaScript;
-- no mandatory PHP framework;
-- file-backed local runtime cache for sessions, idempotency, and SKUD nonce tracking.
+- PHP 8.2 with Apache;
+- Microsoft SQL Server;
+- vanilla JavaScript UI;
+- file-backed local runtime folders for sessions, idempotency, and nonce cache;
+- Docker Compose for evaluation;
+- Windows/XAMPP compatibility for legacy deployment.
 
-This is not a cloud-native microservice architecture. It is an institution-fit architecture: simple to deploy on Windows/XAMPP, strict at the database boundary, and explicit about integrations.
-
-
+The result is a product that prioritizes deployability, auditability, and institutional fit over architectural fashion.
