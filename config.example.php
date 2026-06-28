@@ -2,44 +2,42 @@
 declare(strict_types=1);
 
 /**
- * Конфигурация backend-слоя AIS.
- * Только инфраструктурные настройки и вспомогательные функции.
+ * Example configuration for the anonymized university attendance system.
+ *
+ * Local setup:
+ * 1. Copy this file to config.php.
+ * 2. Set real values through environment variables or your local-only copy.
+ * 3. Never commit config.php, real passwords, HMAC secrets, internal IPs, or production paths.
  */
 
-date_default_timezone_set('Europe/Moscow');
+date_default_timezone_set((string)(getenv('AIS_TIMEZONE') ?: 'Europe/Moscow'));
 
 if (!defined('SITE_NAME')) {
-    define('SITE_NAME', 'АИС учёта посещаемости');
+    define('SITE_NAME', 'University Attendance Management System');
 }
 if (!defined('SITE_URL')) {
-    define('SITE_URL', rtrim((string)(getenv('AIS_SITE_URL') ?: 'http://localhost/ais-system-ru/'), '/') . '/');
+    define('SITE_URL', rtrim((string)(getenv('AIS_SITE_URL') ?: 'http://localhost/ais-attendance/'), '/') . '/');
 }
 if (!defined('API_URL')) {
     define('API_URL', SITE_URL . 'api.php');
 }
 if (!defined('SESSION_LIFETIME_MINUTES')) {
-    define('SESSION_LIFETIME_MINUTES', 480);
+    define('SESSION_LIFETIME_MINUTES', (int)(getenv('AIS_SESSION_LIFETIME_MINUTES') ?: 480));
 }
 if (!defined('DEBUG_MODE')) {
     define('DEBUG_MODE', filter_var(getenv('AIS_DEBUG') ?: 'false', FILTER_VALIDATE_BOOL));
 }
 
-// Integration secrets and settings (override via environment variables in production)
 if (!defined('SKUD_SHARED_SECRET')) {
-    define('SKUD_SHARED_SECRET', getenv('AIS_SKUD_SECRET') ?: '');
+    define('SKUD_SHARED_SECRET', getenv('AIS_SKUD_SECRET') ?: 'CHANGE_ME');
 }
 if (!defined('INTEGRATION_HEALTH_SECRET')) {
-    define('INTEGRATION_HEALTH_SECRET', getenv('AIS_HEALTH_SECRET') ?: null);
+    define('INTEGRATION_HEALTH_SECRET', getenv('AIS_HEALTH_SECRET') ?: 'CHANGE_ME');
 }
 if (!defined('INTEGRATION_ALLOWLIST')) {
-    // Comma-separated IPs
-    $raw = getenv('AIS_INTEGRATION_ALLOWLIST') ?: '127.0.0.1,::1';
-    define('INTEGRATION_ALLOWLIST', $raw);
+    define('INTEGRATION_ALLOWLIST', getenv('AIS_INTEGRATION_ALLOWLIST') ?: '127.0.0.1,::1');
 }
 
-/**
- * Получение значения переменной окружения с дефолтом.
- */
 function getEnvValue(string $name, string $default = ''): string {
     $value = getenv($name);
     if ($value === false || $value === '') {
@@ -48,9 +46,6 @@ function getEnvValue(string $name, string $default = ''): string {
     return (string)$value;
 }
 
-/**
- * Получение булевого значения из переменной окружения.
- */
 function getEnvBool(string $name, bool $default): bool {
     $value = getenv($name);
     if ($value === false || $value === '') {
@@ -61,27 +56,22 @@ function getEnvBool(string $name, bool $default): bool {
     return $parsed === null ? $default : $parsed;
 }
 
-// --- Настройки подключения к SQL Server ---
-$serverName = sprintf('%s,%s',
+$serverName = sprintf(
+    '%s,%s',
     getEnvValue('AIS_DB_HOST', 'localhost'),
-    getEnvValue('AIS_DB_PORT', '15432')
+    getEnvValue('AIS_DB_PORT', '1433')
 );
 
 $connectionOptions = [
-    'Database' => getEnvValue('AIS_DB_NAME', 'Улучшенная'),
-    'Uid' => getEnvValue('AIS_DB_USER', 'php_user'),
-    'PWD' => getEnvValue('AIS_DB_PASSWORD', 'Dev_656'),
+    'Database' => getEnvValue('AIS_DB_NAME', 'UniversityAttendance'),
+    'Uid' => getEnvValue('AIS_DB_USER', 'CHANGE_ME'),
+    'PWD' => getEnvValue('AIS_DB_PASSWORD', 'CHANGE_ME'),
     'CharacterSet' => 'UTF-8',
     'ReturnDatesAsStrings' => true,
-    // Для локальной разработки можно отключить шифрование,
-    // если сервер не настроен на TLS.
     'Encrypt' => getEnvBool('AIS_DB_ENCRYPT', false),
     'TrustServerCertificate' => getEnvBool('AIS_DB_TRUST_SERVER_CERT', true),
 ];
 
-/**
- * Подготовка директории сессий (fallback при недоступном системном пути).
- */
 function ensureSessionStorageReady(): void {
     if (session_status() !== PHP_SESSION_NONE) {
         return;
@@ -102,9 +92,6 @@ function ensureSessionStorageReady(): void {
     }
 }
 
-/**
- * Безопасный запуск сессии.
- */
 function startSessionIfNeeded(): void {
     if (session_status() === PHP_SESSION_NONE) {
         ensureSessionStorageReady();
@@ -112,38 +99,29 @@ function startSessionIfNeeded(): void {
     }
 }
 
-/**
- * Проверка доступности расширения sqlsrv.
- */
 function ensureSqlsrvExtensionLoaded(): void {
     if (!extension_loaded('sqlsrv')) {
-        throw new RuntimeException('Расширение PHP "sqlsrv" не загружено.');
+        throw new RuntimeException('PHP extension "sqlsrv" is not loaded.');
     }
 }
 
-/**
- * Формирование человекочитаемого текста ошибок SQLSRV.
- */
 function getSqlsrvErrorsText(): string {
     $errors = sqlsrv_errors(SQLSRV_ERR_ERRORS);
     if (!is_array($errors) || empty($errors)) {
-        return 'Неизвестная ошибка SQLSRV.';
+        return 'Unknown SQLSRV error.';
     }
 
     $messages = [];
     foreach ($errors as $error) {
         $state = isset($error['SQLSTATE']) ? (string)$error['SQLSTATE'] : 'N/A';
         $code = isset($error['code']) ? (string)$error['code'] : 'N/A';
-        $message = isset($error['message']) ? trim((string)$error['message']) : 'Без сообщения';
+        $message = isset($error['message']) ? trim((string)$error['message']) : 'No message';
         $messages[] = sprintf('[%s/%s] %s', $state, $code, $message);
     }
 
     return implode(' | ', $messages);
 }
 
-/**
- * Подключение к БД.
- */
 function getDBConnection() {
     global $serverName, $connectionOptions;
 
@@ -151,24 +129,18 @@ function getDBConnection() {
 
     $conn = sqlsrv_connect($serverName, $connectionOptions);
     if ($conn === false) {
-        throw new RuntimeException('Ошибка подключения к базе данных: ' . getSqlsrvErrorsText());
+        throw new RuntimeException('Database connection failed: ' . getSqlsrvErrorsText());
     }
 
     return $conn;
 }
 
-/**
- * Закрытие соединения с БД.
- */
 function closeDBConnection($conn): void {
     if (is_resource($conn) || $conn !== null) {
         @sqlsrv_close($conn);
     }
 }
 
-/**
- * Нормализация значений datetime для JSON.
- */
 function normalizeScalarValue($value) {
     if ($value instanceof DateTimeInterface) {
         return $value->format('Y-m-d H:i:s');
@@ -176,9 +148,6 @@ function normalizeScalarValue($value) {
     return $value;
 }
 
-/**
- * Унифицированный JSON-ответ.
- */
 function jsonResponse(bool $success, $data = null, string $message = '', ?int $errorCode = null, int $httpStatus = 200): void {
     if (!headers_sent()) {
         http_response_code($httpStatus);
@@ -199,5 +168,3 @@ function jsonResponse(bool $success, $data = null, string $message = '', ?int $e
     echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
-
-

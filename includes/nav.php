@@ -41,12 +41,12 @@ function navItem(string $href, string $iconClass, string $label, ?string $badge 
 ?>
 <nav class="navbar">
     <a class="brand-icon" href="<?= htmlspecialchars($dashboardPath) ?>" title="На главную" aria-label="На главную">
-        <img src="/ais-system-ru/assets/images/misis-logo.png" alt="МИСИС">
+        <img src="/ais-system-ru/assets/images/university-logo-placeholder.svg" alt="[University Name Redacted]">
     </a>
     <a class="navbar-brand" href="<?= htmlspecialchars($dashboardPath) ?>" title="На главную">
         <div>
             <span class="brand-title">Система посещаемости</span>
-            <span class="brand-sub">СТИ НИТУ «МИСИС»</span>
+            <span class="brand-sub">[University Name Redacted]</span>
         </div>
     </a>
     <div class="navbar-spacer"></div>
@@ -198,4 +198,3 @@ function navItem(string $href, string $iconClass, string $label, ?string $badge 
 
 </aside>
 <main class="app-main" id="main">
-

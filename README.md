@@ -84,8 +84,24 @@ AIS_HEALTH_SECRET
 AIS_INTEGRATION_ALLOWLIST
 ```
 
-Use `.env.example` as a checklist. Do not commit real credentials, GitHub tokens, database passwords, signing secrets, or production allowlists.
+Use `.env.example` as a checklist. Copy `config.example.php` to `config.php` for local non-Docker development. Do not commit real credentials, GitHub tokens, database passwords, signing secrets, or production allowlists.
 
+
+## Engineering Deep Dives
+
+- `ARCHITECTURE.md` explains the thick database trade-off, gateway design, indexing strategy, partitioning status, and integration resilience.
+- `ECONOMICS.md` translates the economic workbook into auditable NPV and cash-flow figures.
+- `AI_COLLABORATION.md` documents how AI was used as an implementation assistant while architecture and review remained human-owned.
+
+## Docker Compose
+
+For a disposable local environment, copy `.env.example` to `.env`, replace `CHANGE_ME_*` values, then run:
+
+```powershell
+docker compose up -d
+```
+
+The current Compose file reflects the existing repository layout where the PHP application lives at the repository root. The container mounts `config.example.php` as `config.php`; for non-Docker local development, create your own ignored `config.php` copy.
 ## Documentation
 
 Start here:
@@ -103,7 +119,7 @@ Never paste personal access tokens into chat, issues, commits, documentation, or
 ## GitHub Publishing
 
 ```powershell
-cd C:\xampp\htdocs\ais-system-en
+cd [INSTALL_PATH]/ais-university-attendance-system
 git remote add origin https://github.com/<your-user>/<your-repo>.git
 git push -u origin main
 ```

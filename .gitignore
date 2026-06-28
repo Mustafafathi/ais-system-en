@@ -2,10 +2,16 @@
 .env
 .env.*
 !.env.example
+config.php
 *.pem
 *.key
 *.pfx
 *.p12
+
+# Local thesis/source attachments, not repository artifacts
+*.docx
+*.xlsx
+*.xls
 
 # Runtime data
 /runtime/*

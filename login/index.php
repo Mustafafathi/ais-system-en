@@ -39,11 +39,11 @@ foreach (aisRoleRoutes() as $roleName => $meta) {
 <div class="login-bg">
     <nav class="login-nav">
         <div class="login-brand-mark">
-            <img src="/ais-system-ru/assets/images/misis-logo.png" alt="МИСИС">
+            <img src="/ais-system-ru/assets/images/university-logo-placeholder.svg" alt="[University Name Redacted]">
         </div>
         <div class="login-brand-copy">
             <span class="login-brand-title">Система учёта посещаемости</span>
-            <span class="login-brand-sub">СТИ НИТУ «МИСИС»</span>
+            <span class="login-brand-sub">[University Name Redacted]</span>
         </div>
     </nav>
 
@@ -125,7 +125,7 @@ foreach (aisRoleRoutes() as $roleName => $meta) {
                 </div>
 
                 <p class="tiny-muted">
-                    СТИ НИТУ «МИСИС» · Старый Оскол · 2026
+                    [University Name Redacted] · 2026
                 </p>
             </div>
 
@@ -371,4 +371,3 @@ foreach (aisRoleRoutes() as $roleName => $meta) {
 </script>
 </body>
 </html>
-
